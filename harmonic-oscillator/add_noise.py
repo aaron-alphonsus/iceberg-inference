@@ -1,17 +1,15 @@
 # Sample position values of harmonic oscillator at various times and add 
 # gaussian noise. Save data to netCDF file.
 
-import json
+# import json
 import math
-import matplotlib.pyplot as plt
-import netCDF4
+import netCDF4 as nc
 import numpy as np
-
 import random
 
 def add_noise(x0, interval, maxtime, springconst, mass): 
-    # Fill time and position vectors beginning at 0.0 and taking observations at
-    # each interval
+    # Fill time, position, and 'noisydata' vectors beginning at 0.0 and taking 
+    # observations at each interval. 
     t = 0.0
     time = []
     pos = []
@@ -21,24 +19,30 @@ def add_noise(x0, interval, maxtime, springconst, mass):
 
         p = x0*math.cos(math.sqrt(springconst/mass)*t)
         pos.append(p)
+        # The noisydata vector contains the position values along with additive 
+        # noise from a gaussian distribution
         noisydata.append(p + random.gauss(0, 0.5)) 
 
         t += interval 
 
-    # Write data to netCDF file format
+    # print(time, pos, noisydata, sep = '\n\n')
+
+    # Convert arrays to numpy arrays
     timenp = np.asarray(time)
     posnp = np.asarray(pos)
     noisydatanp = np.asarray(noisydata)
 
-    ncfile = netCDF4.Dataset('data.nc', mode='w', format='NETCDF4_CLASSIC')
-    # print(ncfile)
+    # Open a new netCDF file in writing mode
+    ncfile = nc.Dataset('data.nc', mode='w', format='NETCDF4_CLASSIC')
+    
+    # Define dimensions of the data
     time_dim = ncfile.createDimension('time', None)
     pos_dim = ncfile.createDimension('pos', 21)
     noisydata_dim = ncfile.createDimension('noisydata', 21)
-    # for dim in ncfile.dimensions.items():
-    #     print(dim)
-    ncfile.title = 'Noisy Data'
     
+    ncfile.title = 'Noisy Data'
+   
+    # Create variables and fill them with the numpy arrays
     timecdf = ncfile.createVariable('time', np.float32, ('time',))
     timecdf[:] = timenp
     poscdf = ncfile.createVariable('pos', np.float32, ('pos',))
@@ -46,36 +50,15 @@ def add_noise(x0, interval, maxtime, springconst, mass):
     noisydatacdf = ncfile.createVariable('noisydata', np.float32, 
             ('noisydata',))
     noisydatacdf[:] = noisydatanp
-    
-    # print(timecdf)
-    # print(poscdf)
-    # print(noisydatacdf)
    
+    # Closing the file writes the variables to the file
     ncfile.close()
-
-
-    # print(timenp)
-    # print(time)
-
-    # h5f = h5py.File('data.h5', 'w')
-    # h5f.create_dataset('dataset_1', data=pos)
-    # h5f.close()
-
+    
     # # Write data to file using json
     # data = {'time'      : time,
     #         'pos'       : pos,
     #         'noisydata' : noisydata}
     # with open('data.txt', 'w') as f:
     #     json.dump(data, f, ensure_ascii=False)
-
-    # print(time)
-    # print(pos)
-    # print(noisydata)
-
-    # # Plot position (red circles) and noisy position data (blue stars) wrt time
-    # fig, axs = plt.subplots(nrows = 1, ncols = 1)
-    # axs.plot(time, pos, 'ro')
-    # axs.plot(time, noisydata, 'b*')
-    # plt.show()
-
+ 
 add_noise(1.0, 0.5, 10, 1.0, 1.0)
