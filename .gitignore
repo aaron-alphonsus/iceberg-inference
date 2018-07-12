@@ -1,1 +1,4 @@
 *.nc
+*.h5
+*.pdf
+__pycache__/
