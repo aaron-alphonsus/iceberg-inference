@@ -17,7 +17,9 @@ from ForwardModel import *
 def WriteData(hdf5file, name, data):
     if name in hdf5file:
         del hdf5file[name]
-    hdf5file.create_dataset(name, data=tobs)
+    # print(tobs)
+    # print(data)
+    hdf5file.create_dataset(name, data=data)
 
 def MakeFigure(totalWidthPts, fraction, presentationVersion = False):
     fig_width_pt  = totalWidthPts * fraction
