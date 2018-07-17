@@ -21,6 +21,7 @@ def WriteData(hdf5file, name, data):
     # print(data)
     hdf5file.create_dataset(name, data=data)
 
+# put this in a callable script
 def MakeFigure(totalWidthPts, fraction, presentationVersion = False):
     fig_width_pt  = totalWidthPts * fraction
     
