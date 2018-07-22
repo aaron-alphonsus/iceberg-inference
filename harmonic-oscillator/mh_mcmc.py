@@ -4,17 +4,18 @@ import numpy as np
 import scipy.stats as stats
 
 from Posterior import Posterior
+from MakeFigure import *
 
 def mh_mcmc(iterations, theta, t1, t2, target, sigma): 
+    cov = np.diag([sigma]*2)
     for i in range(iterations): 
+        
         # Propose new point
-        cov = np.diag([sigma]*2)
         q_theta = stats.multivariate_normal(theta, cov)
-        theta_prop = theta + q_theta.rvs()
-        print("prop = ", theta_prop)
+        theta_prop = q_theta.rvs()
+        # This is a hack. TODO: Find an alternative 
         while theta_prop[0] <= 0 or theta_prop[1] <= 0:
-            theta_prop = theta + q_theta.rvs() 
-            print("prop = ", theta_prop)         
+            theta_prop = q_theta.rvs()         
  
         # Compute acceptance probability
         q_theta_prop = stats.multivariate_normal(theta_prop, cov)
@@ -29,17 +30,26 @@ def mh_mcmc(iterations, theta, t1, t2, target, sigma):
         u = np.random.uniform()
         if u < alpha:
             theta = theta_prop
-        
-        print("t = ", theta)
+       
+        # Save current point in separate vectors 
         t1[i+1] = theta[0]
         t2[i+1] = theta[1]
     
-    print(t1)
-    print(t2)
+    # Plot mixing graphs
+    fig = MakeFigure(700, 1)
+    ax = plt.gca()
+    ax.set_title('Theta1', fontsize = 16)
+    ax.plot(t1)
+
+    fig = MakeFigure(700, 1)
+    ax = plt.gca() 
+    ax.set_title('Theta2', fontsize = 16)
+    ax.plot(t2)
+
+    plt.show()
 
 # Initialize variables
-
-iterations = 500
+iterations = 100000
 init_theta = [1, 0.25]
 sigma = 0.01
 
@@ -49,7 +59,6 @@ t2 = np.zeros(iterations+1)
 t2[0] = init_theta[1]
 
 # Create Posterior object
-
 a1 = 2 
 scale1 = 1 
 a2 = 1 
@@ -61,12 +70,11 @@ u0 = 0.0
 state0 = [x0, u0] 
  
 filename = "data.h5" 
- 
 sig2 = 0.1 
 T = 10 
  
 target = Posterior(hyperparams, state0, filename, sig2, T)
 
-# Call mcmc function
+# Call mcmc function with initialized variables and posterior object
 mh_mcmc(iterations, init_theta, t1, t2, target, sigma)
 
