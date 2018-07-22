@@ -6,7 +6,7 @@ import scipy.stats as stats
 from Posterior import Posterior
 from MakeFigure import *
 
-def mh_mcmc(iterations, theta, t1, t2, target, sigma): 
+def mh_mcmc(iterations, theta, t1, t2, stationary, sigma): 
     cov = np.diag([sigma]*2)
     for i in range(iterations): 
         
@@ -19,9 +19,9 @@ def mh_mcmc(iterations, theta, t1, t2, target, sigma):
  
         # Compute acceptance probability
         q_theta_prop = stats.multivariate_normal(theta_prop, cov)
-        log_r = (target.log_density(theta) 
+        log_r = (   + stationary.log_density(theta_prop)  
                     + q_theta_prop.logpdf(theta) 
-                    - target.log_density(theta_prop) 
+                    - stationary.log_density(theta) 
                     - q_theta.logpdf(theta_prop)
                 )
         alpha = min(1, math.exp(log_r))
@@ -36,16 +36,34 @@ def mh_mcmc(iterations, theta, t1, t2, target, sigma):
         t2[i+1] = theta[1]
     
     # Plot mixing graphs
-    fig = MakeFigure(700, 1)
+    fig = MakeFigure(450, 1)
     ax = plt.gca()
-    ax.set_title('Theta1', fontsize = 16)
+    ax.set_title('Theta1 Mixing', fontsize = 12)
+    ax.set_xlabel('Iterations', fontsize = 10)
+    ax.set_ylabel('Theta1', fontsize = 10)
     ax.plot(t1)
 
-    fig = MakeFigure(700, 1)
+    fig = MakeFigure(450, 1)
     ax = plt.gca() 
-    ax.set_title('Theta2', fontsize = 16)
+    ax.set_title('Theta2 Mixing', fontsize = 12)
+    ax.set_xlabel('Iterations', fontsize = 10)
+    ax.set_ylabel('Theta2', fontsize = 10)
     ax.plot(t2)
 
+    fig = MakeFigure(450, 1)
+    ax = plt.gca() 
+    ax.set_title('Scatter Plot', fontsize = 12)
+    ax.set_xlabel('Theta1', fontsize = 10)
+    ax.set_ylabel('Theta2', fontsize = 10)
+    ax.scatter(t1, t2)
+
+    fig = MakeFigure(450, 1)
+    ax = plt.gca()
+    ax.set_title('Histogram', fontsize = 12)
+    ax.set_xlabel('Theta1', fontsize = 10)
+    ax.set_ylabel('Theta2', fontsize = 10)
+    hist = ax.hist2d(t1, t2, bins=(50,50), cmap=plt.cm.inferno)
+    plt.colorbar(hist[3], ax=ax)
     plt.show()
 
 # Initialize variables
@@ -73,8 +91,8 @@ filename = "data.h5"
 sig2 = 0.1 
 T = 10 
  
-target = Posterior(hyperparams, state0, filename, sig2, T)
+stationary = Posterior(hyperparams, state0, filename, sig2, T)
 
 # Call mcmc function with initialized variables and posterior object
-mh_mcmc(iterations, init_theta, t1, t2, target, sigma)
+mh_mcmc(iterations, init_theta, t1, t2, stationary, sigma)
 

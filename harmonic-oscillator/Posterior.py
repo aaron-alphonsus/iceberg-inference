@@ -60,46 +60,47 @@ if __name__ == '__main__':
     
     filename = "data.h5"
     
-    sig2 = 0.1
+    sig2 = 0.01
     T = 10
     
     post = Posterior(hyperparams, state0, filename, sig2, T)
     
     # Create linearly spaced theta values to evaluate posterior at
-    t1_size = 20
-    t2_size = 30
-    theta1 = np.linspace(0.1, 3, t1_size)
+    t1_size = 100
+    t2_size = 120
+    theta1 = np.linspace(0.1, 8, t1_size)
     theta2 = np.linspace(0, 4, t2_size)
     
     # Fill prior, likelihood, and posterior matrices for plotting purposes
-    prior = np.empty(shape = (t1_size, t2_size))
-    likelihood = np.empty(shape = (t1_size, t2_size))
-    posterior = np.empty(shape = (t1_size, t2_size))
-    for i in range(posterior.shape[0]):
-        for j in range(posterior.shape[1]):  
-            prior[i][j] = post.log_prior([theta1[i], theta2[j]])
-            likelihood[i][j] = post.log_likelihood([theta1[i], theta2[j]])
+    prior = np.empty(shape = (t2_size, t1_size))
+    likelihood = np.empty(shape = (t2_size, t1_size))
+    posterior = np.empty(shape = (t2_size, t1_size))
+    for i in range(posterior.shape[0]): 
+        for j in range(posterior.shape[1]): 
+            prior[i][j] = post.log_prior([theta1[j], theta2[i]])
+            likelihood[i][j] = post.log_likelihood([theta1[j], theta2[i]])
             posterior[i][j] = prior[i][j] + likelihood[i][j]
     
     # Plot contour graphs for prior, likelihood, and posterior
     fig = MakeFigure(700, 0.75)
     ax = plt.gca()
-    ax.contourf(theta2, theta1, prior)
+    ax.contourf(theta1, theta2, prior)
     ax.set_title('Prior', fontsize = 16)
-    ax.set_xlabel('Damping Coefficient ($c/m$)', fontsize = 12)
-    ax.set_ylabel('Spring Coefficient ($k/m$)', fontsize = 12)
+    ax.set_xlabel('Spring Coefficient ($k/m$)', fontsize = 12)
+    ax.set_ylabel('Damping Coefficient ($c/m$)', fontsize = 12)
     
     fig = MakeFigure(700, 1)
     ax = plt.gca()
-    ax.contourf(theta2, theta1, likelihood)
+    ax.contourf(theta1, theta2, likelihood)
     ax.set_title('Likelihood', fontsize = 16)
-    ax.set_xlabel('Damping Coefficient ($c/m$)', fontsize = 12)
-    ax.set_ylabel('Spring Coefficient ($k/m$)', fontsize = 12)
+    ax.set_xlabel('Spring Coefficient ($k/m$)', fontsize = 12)
+    ax.set_ylabel('Damping Coefficient ($c/m$)', fontsize = 12)
     
     fig = MakeFigure(700, 1)
     ax = plt.gca()
-    ax.contourf(theta2, theta1, posterior)
+    ax.contourf(theta1, theta2, posterior)
     ax.set_title('Posterior', fontsize = 16)
-    ax.set_xlabel('Damping Coefficient ($c/m$)', fontsize = 12)
-    ax.set_ylabel('Spring Coefficient ($k/m$)', fontsize = 12)
+    ax.set_xlabel('Spring Coefficient ($k/m$)', fontsize = 12)
+    ax.set_ylabel('Damping Coefficient ($c/m$)', fontsize = 12)
+    
     plt.show()
