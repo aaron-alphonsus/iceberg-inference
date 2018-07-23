@@ -7,13 +7,15 @@ from Posterior import Posterior
 from MakeFigure import *
 
 def mh_mcmc(iterations, theta, t1, t2, stationary, sigma): 
+    accepted = 0
+
     cov = np.diag([sigma]*2)
     for i in range(iterations): 
         
         # Propose new point
         q_theta = stats.multivariate_normal(theta, cov)
         theta_prop = q_theta.rvs()
-        # This is a hack. TODO: Find an alternative 
+        # This is a hack. TODO: Find an alternative (Reject)
         while theta_prop[0] <= 0 or theta_prop[1] <= 0:
             theta_prop = q_theta.rvs()         
  
@@ -24,45 +26,52 @@ def mh_mcmc(iterations, theta, t1, t2, stationary, sigma):
                     - stationary.log_density(theta) 
                     - q_theta.logpdf(theta_prop)
                 )
-        alpha = min(1, math.exp(log_r))
+        alpha = min(1, math.exp(log_r)) #unnecessary
         
         # Accept/reject point
         u = np.random.uniform()
         if u < alpha:
             theta = theta_prop
+            accepted += 1
        
         # Save current point in separate vectors 
         t1[i+1] = theta[0]
         t2[i+1] = theta[1]
     
+    print("Accepted = ", accepted)
+    print("Acceptance rate = ", accepted/iterations)
+
     # Plot mixing graphs
     fig = MakeFigure(450, 1)
     ax = plt.gca()
-    ax.set_title('Theta1 Mixing', fontsize = 12)
+    'Spring Coefficient ($k/m$)'
+    'Damping Coefficient ($c/m$)'
+
+    ax.set_title('Spring Coefficient Mixing', fontsize = 12)
     ax.set_xlabel('Iterations', fontsize = 10)
-    ax.set_ylabel('Theta1', fontsize = 10)
+    ax.set_ylabel('Spring Coefficient ($k/m$)', fontsize = 10)
     ax.plot(t1)
 
     fig = MakeFigure(450, 1)
     ax = plt.gca() 
-    ax.set_title('Theta2 Mixing', fontsize = 12)
+    ax.set_title('Damping Coefficient Mixing', fontsize = 12)
     ax.set_xlabel('Iterations', fontsize = 10)
-    ax.set_ylabel('Theta2', fontsize = 10)
+    ax.set_ylabel('Damping Coefficient ($c/m$)', fontsize = 10)
     ax.plot(t2)
 
     fig = MakeFigure(450, 1)
     ax = plt.gca() 
     ax.set_title('Scatter Plot', fontsize = 12)
-    ax.set_xlabel('Theta1', fontsize = 10)
-    ax.set_ylabel('Theta2', fontsize = 10)
+    ax.set_xlabel('Spring Coefficient ($k/m$)', fontsize = 10)
+    ax.set_ylabel('Damping Coefficient ($c/m$)', fontsize = 10)
     ax.scatter(t1, t2)
 
     fig = MakeFigure(450, 1)
     ax = plt.gca()
-    ax.set_title('Histogram', fontsize = 12)
-    ax.set_xlabel('Theta1', fontsize = 10)
-    ax.set_ylabel('Theta2', fontsize = 10)
-    hist = ax.hist2d(t1, t2, bins=(50,50), cmap=plt.cm.inferno)
+    ax.set_title('2D Histogram', fontsize = 12)
+    ax.set_xlabel('Spring Coefficient ($k/m$)', fontsize = 10)
+    ax.set_ylabel('Damping Coefficient ($c/m$)', fontsize = 10)
+    hist = ax.hist2d(t1, t2, bins = (100,100), cmin = 1, cmap = plt.cm.inferno)
     plt.colorbar(hist[3], ax=ax)
     plt.show()
 

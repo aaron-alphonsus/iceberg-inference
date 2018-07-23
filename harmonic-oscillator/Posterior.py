@@ -36,9 +36,9 @@ class Posterior:
         # Call forward model, store the true position, and evaluate the log of 
         # the pdf at xtrue
         xtrue = ForwardModel(self.tobs, theta, self.state0)
-        likelihood = self.like.logpdf(xtrue)
+        log_like = self.like.logpdf(xtrue)
         
-        return likelihood
+        return log_like
 
     def log_density(self, theta):
         return self.log_prior(theta) + self.log_likelihood(theta)
@@ -66,8 +66,8 @@ if __name__ == '__main__':
     post = Posterior(hyperparams, state0, filename, sig2, T)
     
     # Create linearly spaced theta values to evaluate posterior at
-    t1_size = 100
-    t2_size = 120
+    t1_size = 30
+    t2_size = 40
     theta1 = np.linspace(0.1, 8, t1_size)
     theta2 = np.linspace(0, 4, t2_size)
     
