@@ -1,3 +1,4 @@
+import h5py
 import math
 
 import numpy as np
@@ -6,84 +7,60 @@ import scipy.stats as stats
 from Posterior import Posterior
 from MakeFigure import *
 
-def mh_mcmc(iterations, theta, t1, t2, stationary, sigma): 
-    accepted = 0
+# Takes in number of iterations, starting theta point, target distribution and
+#     sigma value for the covariance
+# Returns arrays with theta1 and theta2 chains along with the acceptance rate
+def mh_mcmc(iterations, init_theta, target, sigma):
+    # Define arrays to store the theta1 and theta2 chains. Store the initial
+    #     theta values in the first spots of the arrays
+    t1 = np.zeros(iterations+1)
+    t1[0] = init_theta[0]
+    t2 = np.zeros(iterations+1)
+    t2[0] = init_theta[1]
 
-    cov = np.diag([sigma]*2)
+    accepted = 0             # To calculate acceptance rate
+    cov = np.diag([sigma]*2) # For the distribution of the proposed point
+    theta = init_theta
+
     for i in range(iterations): 
-        
         # Propose new point
         q_theta = stats.multivariate_normal(theta, cov)
         theta_prop = q_theta.rvs()
-        # This is a hack. TODO: Find an alternative (Reject)
-        while theta_prop[0] <= 0 or theta_prop[1] <= 0:
-            theta_prop = q_theta.rvs()         
- 
-        # Compute acceptance probability
-        q_theta_prop = stats.multivariate_normal(theta_prop, cov)
-        log_r = (   + stationary.log_density(theta_prop)  
-                    + q_theta_prop.logpdf(theta) 
-                    - stationary.log_density(theta) 
-                    - q_theta.logpdf(theta_prop)
-                )
-        alpha = min(1, math.exp(log_r)) #unnecessary
         
-        # Accept/reject point
-        u = np.random.uniform()
-        if u < alpha:
-            theta = theta_prop
-            accepted += 1
+        # If the proposed point is less than or equal to 0, reject.
+        if theta_prop[0] > 0 and theta_prop[1] > 0:
+            # Compute acceptance probability
+            q_theta_prop = stats.multivariate_normal(theta_prop, cov)
+            log_r = (   + target.log_density(theta_prop)
+                        + q_theta_prop.logpdf(theta)
+                        - target.log_density(theta)
+                        - q_theta.logpdf(theta_prop)
+                    )
+
+            # Accept/reject point
+            u = np.random.uniform()
+            if u < math.exp(log_r):
+                theta = theta_prop
+                accepted += 1
        
         # Save current point in separate vectors 
         t1[i+1] = theta[0]
         t2[i+1] = theta[1]
     
-    print("Accepted = ", accepted)
-    print("Acceptance rate = ", accepted/iterations)
+    return (t1, t2, accepted/iterations)
 
-    # Plot mixing graphs
-    fig = MakeFigure(450, 1)
-    ax = plt.gca()
-    'Spring Coefficient ($k/m$)'
-    'Damping Coefficient ($c/m$)'
+def WriteData(hdf5file, name, data):
+    if name in hdf5file:
+        del hdf5file[name]
+    hdf5file.create_dataset(name, data=data)
 
-    ax.set_title('Spring Coefficient Mixing', fontsize = 12)
-    ax.set_xlabel('Iterations', fontsize = 10)
-    ax.set_ylabel('Spring Coefficient ($k/m$)', fontsize = 10)
-    ax.plot(t1)
-
-    fig = MakeFigure(450, 1)
-    ax = plt.gca() 
-    ax.set_title('Damping Coefficient Mixing', fontsize = 12)
-    ax.set_xlabel('Iterations', fontsize = 10)
-    ax.set_ylabel('Damping Coefficient ($c/m$)', fontsize = 10)
-    ax.plot(t2)
-
-    fig = MakeFigure(450, 1)
-    ax = plt.gca() 
-    ax.set_title('Scatter Plot', fontsize = 12)
-    ax.set_xlabel('Spring Coefficient ($k/m$)', fontsize = 10)
-    ax.set_ylabel('Damping Coefficient ($c/m$)', fontsize = 10)
-    ax.scatter(t1, t2)
-
-    fig = MakeFigure(450, 1)
-    ax = plt.gca()
-    ax.set_title('2D Histogram', fontsize = 12)
-    ax.set_xlabel('Spring Coefficient ($k/m$)', fontsize = 10)
-    ax.set_ylabel('Damping Coefficient ($c/m$)', fontsize = 10)
-    hist = ax.hist2d(t1, t2, bins = (100,100), cmin = 1, cmap = plt.cm.inferno)
-    plt.colorbar(hist[3], ax=ax)
-    plt.show()
+################################# MAIN PROGRAM ################################
+# Calls mcmc function and writes generated theta values out to data_mcmc.h5
 
 # Initialize variables
 iterations = 100000
 init_theta = [1, 0.25]
 sigma = 0.01
-
-t1 = np.zeros(iterations+1)
-t1[0] = init_theta[0]
-t2 = np.zeros(iterations+1)
-t2[0] = init_theta[1]
 
 # Create Posterior object
 a1 = 2 
@@ -96,12 +73,18 @@ x0 = 1.0
 u0 = 0.0 
 state0 = [x0, u0] 
  
-filename = "data.h5" 
+filename = 'data.h5'
 sig2 = 0.1 
 T = 10 
  
-stationary = Posterior(hyperparams, state0, filename, sig2, T)
+target = Posterior(hyperparams, state0, filename, sig2, T)
 
 # Call mcmc function with initialized variables and posterior object
-mh_mcmc(iterations, init_theta, t1, t2, stationary, sigma)
+theta1, theta2, acc_rate = mh_mcmc(iterations, init_theta, target, sigma)
 
+# Write data out to file
+filename = 'data_mcmc.h5'
+h5file = h5py.File(filename, 'a')
+WriteData(h5file, 'data_mcmc/theta1',   theta1)
+WriteData(h5file, 'data_mcmc/theta2',   theta2)
+WriteData(h5file, 'data_mcmc/acc_rate', acc_rate)
