@@ -9,7 +9,7 @@ from ForwardModel import *
 from MakeFigure import *
 
 class Posterior:
-    def __init__(self, hyperparams, state0, filename, sig2, T):
+    def __init__(self, hyperparams, state0, filename, sig2):
         self.hyperparams = hyperparams
         self.state0 = state0
 
@@ -17,6 +17,7 @@ class Posterior:
         hdf5file = h5py.File(filename, 'r')
         self.tobs = hdf5file['data/time'][:]
         xobs = hdf5file['data/xobs'][:]
+        T = xobs.size # Set T to number of observations in data.h5
 
         # Create covariance matrix
         cov = np.diag([sig2]*T)
@@ -59,16 +60,14 @@ if __name__ == '__main__':
     state0 = [x0, u0]
     
     filename = "data.h5"
-    
     sig2 = 0.01
-    T = 10
     
-    post = Posterior(hyperparams, state0, filename, sig2, T)
+    post = Posterior(hyperparams, state0, filename, sig2)
     
     # Create linearly spaced theta values to evaluate posterior at
     t1_size = 30
     t2_size = 40
-    theta1 = np.linspace(0.1, 8, t1_size)
+    theta1 = np.linspace(0.1, 13, t1_size)
     theta2 = np.linspace(0, 4, t2_size)
     
     # Fill prior, likelihood, and posterior matrices for plotting purposes

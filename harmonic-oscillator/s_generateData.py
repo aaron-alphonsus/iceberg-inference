@@ -1,11 +1,11 @@
 # Author: Andrew Davis
 # Edited By: Aaron Alphonsus
 
-import numpy as np
-
 import h5py
+import random
 
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib import rcParams
 
 from math import *
@@ -45,8 +45,8 @@ sig2 = 0.01 # data noise
 tf = 10.0 # final time
 T = 10 # number of observations
 
-# observations times
-tobs = np.linspace(0.0, tf, T)
+# Observation times
+tobs = np.linspace(t0, tf, T)
 WriteData(hdf5file, 'data/time', tobs)
 
 # run the forward model
@@ -61,7 +61,7 @@ data = xobs+noise
 WriteData(hdf5file, 'data/xobs', data)
 
 # for plotting purposes, compute the truth
-time = np.linspace(0.0, tf, 1000)
+time = np.linspace(t0, tf, 1000)
 xtrue = ForwardModel(time, theta, state0)
 
 fig = MakeFigure(425, 0.9)
