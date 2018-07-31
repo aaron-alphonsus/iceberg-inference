@@ -1,3 +1,5 @@
+# Authors: Chi Zhang, Aaron Alphonsus
+###############################################################################
 import h5py
 import numpy as np
 
