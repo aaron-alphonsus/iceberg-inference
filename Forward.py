@@ -1,6 +1,6 @@
 # Javier Salazar & Aaron Alphonsus
 # Skeleton Code: James Ronan
-# Iceberg Forward Model Rev 2
+# Iceberg Forward Model Rev 2.0
 #------------libraries-------------------------------
 from scipy.integrate import ode # ode system
 import numpy as np # array manipulation
@@ -8,36 +8,58 @@ import matplotlib.pyplot as plt #plotting
 import math # calculations
 from scipy.interpolate import interpn # for latitude/longitude grid
 import h5py # read files
-#-------------parameters---------------------------------------
-x0,y0,u0,v0 = 312.8, 56.8, -0.4,0.2 # postion and intial velocity for iceberg
-inferValues = [1, 0.0001] # c_air and c_water
+#import matplotlib.cm as cm
+#-------------parameters---------------------------------------57 43.8 0.01
+x0,y0,u0,v0 = 304, 61, 0.0, 0.0 # postion and intial velocity for iceberg
+inferValues = [1.0, 0.1] # c_water and c_air
+plotOption = 1 # 0 -> no image overlay. 1 -> image background
+resolutionData = 88
 #----------calculations-----------------------------------
 xvec = [[x0,y0]] # first value
-#------------input stored data and process-----------------------
+def plotData(pointPairs, plotOption, errorCode):
+    xData=[x[0] for x in pointPairs]
+    yData=[x[1] for x in pointPairs]
+    if (plotOption == 0):
+        plt.plot(xData,yData)
+    if (plotOption == 1):
+        img = plt.imread("land_mass.png") # image for scatter background
+        plt.imshow(img)
+        xData2 = np.interp(xData, [lon_current[0], lon_current[-1]], [0, len(lon_current)]) # linearly map lat/lon values to image pixel locations
+        yData2 = np.interp(yData, [lat_current[0], lat_current[-1]], [0, len(lat_current)])
+        yData2[:] = [len(lat_current)-x for x in yData2]
+        yticks= np.array(np.linspace(lat_current[-1],lat_current[0],10))
+        ylocs = np.array(np.linspace(0, len(lat_current), 10))
+        yticks = np.around(yticks, decimals=1)
+        xticks= np.array(np.linspace(lon_current[0],lon_current[-1],10))
+        xlocs = np.array(np.linspace(0, len(lon_current), 10))
+        xticks = np.around(xticks, decimals=1)
+        plt.plot(xData2,yData2)
+        plt.xticks(xlocs, xticks)
+        plt.yticks(ylocs, yticks)
+    plt.title('Iceberg Predicted Path')
+    plt.xlabel('Longitude')
+    plt.ylabel('Latitude')
+    if (errorCode == 1):
+        print("Program finished early. Out of bounds of data region. Interpolation error.")
+    if (errorCode == 3):
+        print("Program finished early. Object touched land. Nan interpolation error.")
+    plt.show()
 def checkValidPoints(x,y):
     global u_matrix_ocean
+    global lon_current
+    global lat_current
     if (x < rangeLon[0] or x > rangeLon[1] or y < rangeLat[0] or y > rangeLat[1]):
         global xvec
-        xData=[x[0] for x in xvec]
-        yData=[x[1] for x in xvec]
-        plt.plot(xData,yData)
-        plt.title('Iceberg Predicted Path')
-        plt.xlabel('Longitude')
-        plt.ylabel('Latitude')
-        plt.show()
+        plotData(xvec, plotOption, 1)
         quit()
+    lon_current = np.asarray(lon_current)
+    lat_current = np.asarray(lat_current)
     idx = (np.abs(lon_current - x)).argmin()
     idy = (np.abs(lat_current - y)).argmin()
     if (math.isnan(u_matrix_ocean[0,idy,idx]) == True):
-        xData=[x[0] for x in xvec]
-        yData=[x[1] for x in xvec]
-        plt.plot(xData,yData)
-        plt.title('Iceberg Predicted Path')
-        plt.xlabel('Longitude')
-        plt.ylabel('Latitude')
-        plt.show()
+        plotData(xvec, plotOption, 3)
         quit()
-
+#------------input stored data and process-----------------------
 def fixGiantMess(filename):
     hdf5file = h5py.File(filename, 'r')
     lat_current= np.array(hdf5file['current_variables/lat'].value) #collect information
@@ -60,10 +82,12 @@ def fixGiantMess(filename):
 #-----------convert meters/sec to deg/sec--------------------------------------------------
 def convertUnits(u, v, x, y): # not currently used in code
     length_v = 111320.0 # for latitude the length is fixed per degree
-    v_new = v/length_v # veolicty is deg/sec
+    v_new = 3.6*v/length_v # veolicty is deg/sec
     # meters per degree is a function for longitude that depends on latitude
     length_u = float(40075000.0*math.degrees(math.cos(math.radians(y)))/360.0)
-    u_new = u/length_u # constant is related to length at equator
+    u_new = 3.6*u/length_u # constant is related to length at equator
+    #u_new = u
+    #v_new = v
     return [u_new, v_new]
 #--------------coriolis force function------------------------------
 def Fcor(state, t):
@@ -81,18 +105,18 @@ def LookUpWater(state, t):
     checkValidPoints(x,y)
     if(t > timeRange[-1]): # ode goes over range of time by 0.01 for example so time is capped at final time
          t = timeRange[-1]
-    u_point = interpn((timeRange, lat_current , lon_current), u_matrix_ocean, np.array([t, y, x]).T) # interpolate from grid info
-    v_point = interpn((timeRange, lat_current , lon_current), v_matrix_ocean, np.array([t, y, x]).T)
-    #[u_convert, v_convert] = convertUnits(u_point[0], v_point[0], x, y) # convert units to deg info
-    return [u_point[0],v_point[0]]
+    u_point = interpn((timeData, lat_current , lon_current), u_matrix_ocean, np.array([t, y, x]).T) # interpolate from grid info
+    v_point = interpn((timeData, lat_current , lon_current), v_matrix_ocean, np.array([t, y, x]).T)
+    [u_convert, v_convert] = convertUnits(u_point[0], v_point[0], x, y) # convert units to deg info
+    return [u_convert,v_convert]
 #--------------air interpolation-------------------------
 def LookUpAir(x,y, t):
     if(t > timeRange[-1]): # same as look up water
          t = timeRange[-1]
-    u_point2 = interpn((timeRange, lat_wind , lon_wind), u_matrix_wind, np.array([t, y, x]).T) # interpolate using linear
-    v_point2 = interpn((timeRange, lat_wind , lon_wind), v_matrix_wind, np.array([t, y, x]).T)
-    #[u_convert, v_convert] = convertUnits(u_point2[0], v_point2[0], x, y) # convert units
-    return [u_point2[0],v_point2[0]]
+    u_point2 = interpn((timeData, lat_wind , lon_wind), u_matrix_wind, np.array([t, y, x]).T) # interpolate using linear
+    v_point2 = interpn((timeData, lat_wind , lon_wind), v_matrix_wind, np.array([t, y, x]).T)
+    [u_convert, v_convert] = convertUnits(u_point2[0], v_point2[0], x, y) # convert units
+    return [u_convert,v_convert]
 #----------water force computation--------------------
 def Fwater(state,c_w, t): # water force
     u_ocean=np.array(LookUpWater(state, t)) # get from ocean currents
@@ -113,16 +137,6 @@ def rhs(t, state, theta):
     y = state[1] # y position
     u = state[2] # x velocity
     v = state[3] # y velocity
-    if (math.isnan(x) == True or math.isnan(y) == True): # if position is NaN do the following
-        global xvec
-        xData=[x[0] for x in xvec]
-        yData=[x[1] for x in xvec]
-        plt.plot(xData,yData)
-        plt.title('Iceberg Predicted Path')
-        plt.xlabel('Longitude')
-        plt.ylabel('Latitude')
-        plt.show()
-        quit()
     c_water = theta[0] # set inference values
     c_air = theta[1]
     Water_F=Fwater(state,theta[0], t) # get forces
@@ -137,29 +151,28 @@ def ForwardModel(time, theta, state0):
     solver.set_initial_value(state0, time[0])
     solver.set_f_params(theta)
     for t in time[1:]:
-        assert(solver.successful())
+        #assert(solver.successful())
         solver.integrate(t)
-        xvec = xvec+[[solver.y[0],solver.y[1]]]
+        x = solver.y[0]
+        y = solver.y[1]
+        checkValidPoints(x, y)
+        xvec = xvec+[[x,y]]
     return xvec
 #------------------global calculations used in functions-----------------------
 intialState = [x0, y0, u0, v0]
 [timeArray, u_matrix_ocean, v_matrix_ocean, u_matrix_wind, v_matrix_wind, lat_current, lon_current, lat_wind, lon_wind] = fixGiantMess('IcebergData.h5')
-timeRange = np.array(range(0,len(timeArray)))
+timeRange = np.linspace(0,len(timeArray)-1,resolutionData)
+timeData = np.array(range(len(timeArray)))
+# print(timeRange)
+# print(timeArray)
+# print(timeData)
+#timeRange = np.array(range(0,len(timeArray)))
 rangeLat = [max(lat_wind[0], lat_current[0]), min(lat_wind[-1], lat_current[-1])]
 rangeLon = [max(lon_wind[0], lon_current[0]), min(lon_wind[-1], lon_current[-1])]
 #-------------main function---------------------------------
 ObsData=ForwardModel(timeRange,inferValues,intialState)
-xData=[x[0] for x in ObsData] # seperate x and y points
-yData=[x[1] for x in ObsData]
+#print(ObsData)
 # matrix = u_matrix_ocean[0,:,:]
-# matrixLand = np.flipud(np.isnan(matrix))
-# plt.imsave('land_mass.png', np.array(~matrixLand), cmap=cm.gray)
-# img = plt.imread("land_mass.png") # image for scatter background
-# plt.imshow(img)
-# xData2 = np.interp(xData, [lon_current[0], lon_current[-1]], [0, len(lon_current)]) # linearly map lat/lon values to image pixel locations
-# yData2 = np.interp(yData, [lat_current[0], lat_current[-1]], [0, len(lat_current)])
-plt.plot(xData,yData)
-plt.title('Iceberg Predicted Path')
-plt.xlabel('Longitude')
-plt.ylabel('Latitude')
-plt.show()
+# matrixLand = np.isnan(matrix)
+# plt.imsave('land_mass2.png', np.array(~matrixLand), cmap=cm.gray)
+plotData(ObsData, plotOption, 0)
