@@ -51,59 +51,62 @@ class Posterior:
         log_posterior = self.log_prior(theta) + self.log_likelihood(theta)
         return log_posterior
 
-filename = "iceberg_data.h5"
-sig2 = 0.1
+################################# Main Program ################################
 
-a1 = 2
-scale1 = 1
-a2 = 1
-scale2 = 1
-hyperparameters = [[a1, scale1], [a2, scale2]]
-
-# theta = [1, 0.001]
-# x0, y0, u0, v0 = 320.0, 46.666666, -0.371430489, 0.123941015917
-# state0 = [x0, y0, u0, v0]
-theta = [1.5, 1.5]
-state0 = [0, -1, 0, 0]
-
-post = Posterior(hyperparameters, state0, filename, sig2)
-
-# Create linearly spaced theta values to evaluate posterior at
-t1_size = 10
-t2_size = 10
-theta1 = np.linspace(1.3, 2, t1_size)
-theta2 = np.linspace(1.3, 2, t2_size)
-
-prior = np.empty(shape = (t2_size, t1_size))
-likelihood = np.empty(shape = (t2_size, t1_size))
-posterior = np.empty(shape = (t2_size, t1_size))
-for i in range(t2_size): 
-    for j in range(t1_size): 
-        prior[i][j] = post.log_prior([theta1[j], theta2[i]])
-        likelihood[i][j] = post.log_likelihood([theta1[j], theta2[i]])
-        posterior[i][j] = prior[i][j] + likelihood[i][j]
-
-fig = MakeFigure(700, 0.75)
-ax = plt.gca()
-ax.contourf(theta1, theta2, prior)
-ax.set_title('Log Prior', fontsize = 16)
-ax.set_xlabel('Water Coefficient ($Cw$)', fontsize = 12)
-ax.set_ylabel('Air Coefficient ($Ca$)', fontsize = 12)
-
-fig = MakeFigure(700, 1)
-ax = plt.gca()
-cont = ax.contourf(theta1, theta2, np.exp(np.array(likelihood)))
-plt.colorbar(cont)
-ax.set_title('Likelihood', fontsize = 16)
-ax.set_xlabel('Water Coefficient ($Cw$)', fontsize = 12)
-ax.set_ylabel('Air Coefficient ($Ca$)', fontsize = 12)
-
-fig = MakeFigure(700, 1)
-ax = plt.gca()
-cont = ax.contourf(theta1, theta2, np.exp(np.array(posterior)))
-plt.colorbar(cont)
-ax.set_title('Log Posterior', fontsize = 16)
-ax.set_xlabel('Water Coefficient ($Cw$)', fontsize = 12)
-ax.set_ylabel('Air Coefficient ($Ca$)', fontsize = 12)
-
-plt.show()
+if __name__ == '__main__':
+    filename = "iceberg_data.h5"
+    sig2 = 0.1
+    
+    a1 = 2
+    scale1 = 1
+    a2 = 1
+    scale2 = 1
+    hyperparameters = [[a1, scale1], [a2, scale2]]
+    
+    # theta = [1, 0.001]
+    # x0, y0, u0, v0 = 320.0, 46.666666, -0.371430489, 0.123941015917
+    # state0 = [x0, y0, u0, v0]
+    theta = [1.5, 1.5]
+    state0 = [0, -1, 0, 0]
+    
+    post = Posterior(hyperparameters, state0, filename, sig2)
+    
+    # Create linearly spaced theta values to evaluate posterior at
+    t1_size = 10
+    t2_size = 10
+    theta1 = np.linspace(1.3, 2, t1_size)
+    theta2 = np.linspace(1.3, 2, t2_size)
+    
+    prior = np.empty(shape = (t2_size, t1_size))
+    likelihood = np.empty(shape = (t2_size, t1_size))
+    posterior = np.empty(shape = (t2_size, t1_size))
+    for i in range(t2_size): 
+        for j in range(t1_size): 
+            prior[i][j] = post.log_prior([theta1[j], theta2[i]])
+            likelihood[i][j] = post.log_likelihood([theta1[j], theta2[i]])
+            posterior[i][j] = prior[i][j] + likelihood[i][j]
+    
+    fig = MakeFigure(700, 0.75)
+    ax = plt.gca()
+    ax.contourf(theta1, theta2, prior)
+    ax.set_title('Log Prior', fontsize = 16)
+    ax.set_xlabel('Water Coefficient ($Cw$)', fontsize = 12)
+    ax.set_ylabel('Air Coefficient ($Ca$)', fontsize = 12)
+    
+    fig = MakeFigure(700, 1)
+    ax = plt.gca()
+    cont = ax.contourf(theta1, theta2, np.exp(np.array(likelihood)))
+    plt.colorbar(cont)
+    ax.set_title('Likelihood', fontsize = 16)
+    ax.set_xlabel('Water Coefficient ($Cw$)', fontsize = 12)
+    ax.set_ylabel('Air Coefficient ($Ca$)', fontsize = 12)
+    
+    fig = MakeFigure(700, 1)
+    ax = plt.gca()
+    cont = ax.contourf(theta1, theta2, np.exp(np.array(posterior)))
+    plt.colorbar(cont)
+    ax.set_title('Log Posterior', fontsize = 16)
+    ax.set_xlabel('Water Coefficient ($Cw$)', fontsize = 12)
+    ax.set_ylabel('Air Coefficient ($Ca$)', fontsize = 12)
+    
+    plt.show()
