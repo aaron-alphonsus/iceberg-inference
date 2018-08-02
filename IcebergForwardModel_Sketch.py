@@ -1,3 +1,5 @@
+# Author: James Ronan
+
 from scipy.integrate import ode
 import numpy as np
 import matplotlib.pyplot as plt
@@ -94,14 +96,14 @@ def ForwardModel(time, theta, state0):
 
 if __name__ == '__main__':
     ObsTime=list(range(100))
-    ObsData=ForwardModel(ObsTime,[1.5,1.5],[0,-1,0,0])
-    Xdata=[x[0] for x in ObsData]
-    Ydata=[x[1] for x in ObsData]
-    nx,ny=64,64
-    xgrid=np.linspace(-16,16,nx)
-    ygrid=np.linspace(-16,16,ny)
-    X, Y=np.meshgrid(xgrid,ygrid)
-    U,V=MUScurrent(X,Y)
-    plt.quiver(X,Y,U,V)
-    plt.plot(Xdata,Ydata)
+    ObsData=ForwardModel(ObsTime, [1.5, 1.5], [0, -1, 0, 0])
+    Xdata = [x[0] for x in ObsData]
+    Ydata = [x[1] for x in ObsData]
+    nx, ny = 64,64
+    xgrid = np.linspace(-16, 16, nx)
+    ygrid = np.linspace(-16, 16, ny)
+    X, Y = np.meshgrid(xgrid, ygrid)
+    U, V = MUScurrent(X, Y)
+    plt.quiver(X, Y, U, V)
+    plt.plot(Xdata, Ydata)
     plt.show()

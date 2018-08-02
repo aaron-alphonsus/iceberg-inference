@@ -15,7 +15,7 @@ filename = 'iceberg_data.h5'
 hdf5file = h5py.File(filename, 'a')
 
 t0 = 0.0
-sig2 = 0.01
+sig2 = 1
 
 theta = [1.5, 1.5]
 state0 = [0,-1,0,0]

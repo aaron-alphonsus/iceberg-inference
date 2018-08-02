@@ -4,13 +4,15 @@ import math
 import numpy as np
 import scipy.stats as stats
 
+from datetime import datetime
+
 from Posterior import Posterior
 from harmonic_oscillator.MakeFigure import *
 
 # Takes in number of iterations, starting theta point, target distribution and
 #     sigma value for the covariance
 # Returns arrays with theta1 and theta2 chains along with the acceptance rate
-def mh_mcmc(iterations, init_theta, target, sigma):
+def mh_mcmc(iterations, init_theta, target, prop_sig2, startTime):
     # Define arrays to store the theta1 and theta2 chains. Store the initial
     #     theta values in the first spots of the arrays
     t1 = np.zeros(iterations+1)
@@ -18,8 +20,8 @@ def mh_mcmc(iterations, init_theta, target, sigma):
     t2 = np.zeros(iterations+1)
     t2[0] = init_theta[1]
 
-    accepted = 0             # To calculate acceptance rate
-    cov = np.diag([sigma]*2) # For the distribution of the proposed point
+    accepted = 0                 # To calculate acceptance rate
+    cov = np.diag([prop_sig2]*2) # For the distribution of the proposed point
     theta = init_theta
 
     for i in range(iterations): 
@@ -40,7 +42,8 @@ def mh_mcmc(iterations, init_theta, target, sigma):
 
             # Accept/reject point
             u = np.random.uniform()
-            # print(i, u, log_r)
+            if(i % 1000 == 0): 
+                print(i, datetime.now() - startTime)
             if u < math.exp(log_r):
                 theta = theta_prop
                 accepted += 1
@@ -60,9 +63,9 @@ def WriteData(hdf5file, name, data):
 # Calls mcmc function and writes generated theta values out to data_mcmc.h5
 
 # Initialize variables
-iterations = 10000
-init_theta = [1.3, 1.3]
-sigma = 0.0001
+iterations = 100000
+init_theta = [1.5, 1.5]
+prop_sig2 = 0.0001
 
 # Create Posterior object
 a1 = 2 
@@ -78,12 +81,16 @@ v0 = 0.0
 state0 = [x0, y0, u0, v0] 
  
 filename = 'iceberg_data.h5'
-sig2 = 0.1 
+sig2 = 1 
  
 target = Posterior(hyperparams, state0, filename, sig2)
 
 # Call mcmc function with initialized variables and posterior object
-theta1, theta2, acc_rate = mh_mcmc(iterations, init_theta, target, sigma)
+startTime = datetime.now()
+print(startTime)
+theta1, theta2, acc_rate = mh_mcmc(iterations, init_theta, target, prop_sig2, 
+    startTime)
+print(datetime.now(), datetime.now() - startTime)
 
 # Write data out to file
 filename = 'iceberg_mcmc.h5'
