@@ -165,13 +165,14 @@ def ForwardModel(time, theta, state0, values, values2):
         y = solver.y[1]
         #checkValidPoints(x, y)
         xvec = xvec+[[x,y]]
-    xvec2 = []
-    for i in range(0, len(xvec)-1):
-        xvec2 = xvec2 + [xvec[i]]
-        print(i)
-        if (xvec[i+1][0] == xvec[i][0] and xvec[i+1][1] == xvec[i][1]):
-            break
-    return np.array(xvec2)
+    # xvec2 = []
+    # for i in range(0, len(xvec)-1):
+    #     xvec2 = xvec2 + [xvec[i]]
+    #     # print(i)
+    #     if (xvec[i+1][0] == xvec[i][0] and xvec[i+1][1] == xvec[i][1]):
+    #         break
+    # return np.array(xvec2)
+    return xvec
 def fixSecondMess():
     values = fixGiantMess('IcebergData.h5')
     timeData = np.array(range(len(values[0])))
