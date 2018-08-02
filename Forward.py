@@ -10,10 +10,10 @@ from scipy.interpolate import interpn # for latitude/longitude grid
 import h5py # read files
 #import matplotlib.cm as cm
 #-------------parameters---------------------------------------308.0 55.9
-x0,y0,u0,v0 = 308.0, 55.9, 0.5, 0.5 # postion and intial velocity for iceberg
-inferValues = [1.0, 0.1] # c_water and c_air
-plotOption = 1 # 0 -> no image overlay. 1 -> image background
-resolutionData = 88
+# x0,y0,u0,v0 = 308.0, 55.9, 0.5, 0.5 # postion and intial velocity for iceberg
+# inferValues = [1.0, 0.1] # c_water and c_air
+# plotOption = 1 # 0 -> no image overlay. 1 -> image background
+# resolutionData = 88
 #----------calculations-----------------------------------
 #xvec = [[x0,y0]] # first value
 
@@ -165,7 +165,13 @@ def ForwardModel(time, theta, state0, values, values2):
         y = solver.y[1]
         #checkValidPoints(x, y)
         xvec = xvec+[[x,y]]
-    return xvec
+    xvec2 = []
+    for i in range(0, len(xvec)-1):
+        xvec2 = xvec2 + [xvec[i]]
+        print(i)
+        if (xvec[i+1][0] == xvec[i][0] and xvec[i+1][1] == xvec[i][1]):
+            break
+    return np.array(xvec2)
 def fixSecondMess():
     values = fixGiantMess('IcebergData.h5')
     timeData = np.array(range(len(values[0])))
@@ -174,7 +180,7 @@ def fixSecondMess():
     values2 = [timeData, rangeLat, rangeLon]
     return [values, values2]
 #------------------global calculations used in functions-----------------------
-initialState = [x0, y0, u0, v0]
+#initialState = [x0, y0, u0, v0]
 #[timeArray, u_matrix_ocean, v_matrix_ocean, u_matrix_wind, v_matrix_wind, lat_current, lon_current, lat_wind, lon_wind] = fixGiantMess('IcebergData.h5')
 #values = fixGiantMess('IcebergData.h5')
 #timeRange = np.linspace(0,len(values[0])-1,resolutionData)
@@ -182,13 +188,13 @@ initialState = [x0, y0, u0, v0]
 #rangeLat = [max(lat_wind[0], lat_current[0]), min(lat_wind[-1], lat_current[-1])]
 #rangeLon = [max(lon_wind[0], lon_current[0]), min(lon_wind[-1], lon_current[-1])]
 #values2 = [timeData, rangeLat, rangeLon]
-[values, values2] = fixSecondMess()
-timeRange = np.linspace(0,len(values[0])-1,200)
-print(len(values[0])-1)
+#[values, values2] = fixSecondMess()
+#timeRange = np.linspace(0,len(values[0])-1,200)
+#print(len(values[0])-1)
 #-------------main function---------------------------------
-ObsData = ForwardModel(timeRange,inferValues,initialState, values, values2)
+#ObsData = ForwardModel(timeRange,inferValues,initialState, values, values2)
 #print(ObsData)
 # matrix = u_matrix_ocean[0,:,:]
 # matrixLand = np.isnan(matrix)
 # plt.imsave('land_mass2.png', np.array(~matrixLand), cmap=cm.gray)
-plotData(ObsData, 0, 0)
+#plotData(ObsData, 0, 0)
