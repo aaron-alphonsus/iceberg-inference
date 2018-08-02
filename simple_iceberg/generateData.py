@@ -4,7 +4,7 @@ import h5py
 import numpy as np
 
 from IcebergForwardModel_Sketch import ForwardModel 
-from harmonic_oscillator.MakeFigure import *
+from MakeFigure import *
 
 def WriteData(hdf5file, name, data):
     if name in hdf5file:

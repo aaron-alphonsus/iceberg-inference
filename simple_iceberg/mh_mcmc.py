@@ -7,7 +7,7 @@ import scipy.stats as stats
 from datetime import datetime
 
 from Posterior import Posterior
-from harmonic_oscillator.MakeFigure import *
+from MakeFigure import *
 
 # Takes in number of iterations, starting theta point, target distribution and
 #     sigma value for the covariance

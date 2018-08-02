@@ -10,7 +10,7 @@ import scipy.stats as stats
 from datetime import datetime
 
 from IcebergForwardModel_Sketch import *
-from harmonic_oscillator.MakeFigure import *
+from MakeFigure import *
 
 class Posterior:
     def __init__(self, hyperparams, state0, filename, sig2):
