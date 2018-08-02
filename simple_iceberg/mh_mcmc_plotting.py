@@ -1,6 +1,6 @@
 import h5py
 
-from harmonic_oscillator.MakeFigure import *
+from MakeFigure import *
 
 # Read data from file
 filename = 'iceberg_mcmc.h5'

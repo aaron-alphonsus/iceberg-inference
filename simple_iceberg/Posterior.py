@@ -7,8 +7,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats as stats
 
+from datetime import datetime
+
 from IcebergForwardModel_Sketch import *
-from harmonic_oscillator.MakeFigure import *
+from MakeFigure import *
 
 class Posterior:
     def __init__(self, hyperparams, state0, filename, sig2):
@@ -55,7 +57,7 @@ class Posterior:
 
 if __name__ == '__main__':
     filename = "iceberg_data.h5"
-    sig2 = 0.1
+    sig2 = 1
     
     a1 = 2
     scale1 = 1
@@ -72,30 +74,33 @@ if __name__ == '__main__':
     post = Posterior(hyperparameters, state0, filename, sig2)
     
     # Create linearly spaced theta values to evaluate posterior at
-    t1_size = 10
-    t2_size = 10
+    t1_size = 150
+    t2_size = 150
     theta1 = np.linspace(1.3, 2, t1_size)
     theta2 = np.linspace(1.3, 2, t2_size)
     
-    prior = np.empty(shape = (t2_size, t1_size))
-    likelihood = np.empty(shape = (t2_size, t1_size))
-    posterior = np.empty(shape = (t2_size, t1_size))
+    startTime = datetime.now()
+    print(startTime) 
+    log_prior = np.empty(shape = (t2_size, t1_size))
+    log_likelihood = np.empty(shape = (t2_size, t1_size))
+    log_posterior = np.empty(shape = (t2_size, t1_size))
     for i in range(t2_size): 
         for j in range(t1_size): 
-            prior[i][j] = post.log_prior([theta1[j], theta2[i]])
-            likelihood[i][j] = post.log_likelihood([theta1[j], theta2[i]])
-            posterior[i][j] = prior[i][j] + likelihood[i][j]
-    
+            log_prior[i][j] = post.log_prior([theta1[j], theta2[i]])
+            log_likelihood[i][j] = post.log_likelihood([theta1[j], theta2[i]])
+            log_posterior[i][j] = log_prior[i][j] + log_likelihood[i][j]
+        print(i, datetime.now() - startTime)   
+ 
     fig = MakeFigure(700, 0.75)
     ax = plt.gca()
-    ax.contourf(theta1, theta2, prior)
-    ax.set_title('Log Prior', fontsize = 16)
+    ax.contourf(theta1, theta2, np.exp(np.array(log_prior)))
+    ax.set_title('Prior', fontsize = 16)
     ax.set_xlabel('Water Coefficient ($Cw$)', fontsize = 12)
     ax.set_ylabel('Air Coefficient ($Ca$)', fontsize = 12)
     
     fig = MakeFigure(700, 1)
     ax = plt.gca()
-    cont = ax.contourf(theta1, theta2, np.exp(np.array(likelihood)))
+    cont = ax.contourf(theta1, theta2, np.exp(np.array(log_likelihood)))
     plt.colorbar(cont)
     ax.set_title('Likelihood', fontsize = 16)
     ax.set_xlabel('Water Coefficient ($Cw$)', fontsize = 12)
@@ -103,9 +108,9 @@ if __name__ == '__main__':
     
     fig = MakeFigure(700, 1)
     ax = plt.gca()
-    cont = ax.contourf(theta1, theta2, np.exp(np.array(posterior)))
+    cont = ax.contourf(theta1, theta2, np.exp(np.array(log_posterior)))
     plt.colorbar(cont)
-    ax.set_title('Log Posterior', fontsize = 16)
+    ax.set_title('Posterior', fontsize = 16)
     ax.set_xlabel('Water Coefficient ($Cw$)', fontsize = 12)
     ax.set_ylabel('Air Coefficient ($Ca$)', fontsize = 12)
     
