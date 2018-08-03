@@ -29,6 +29,8 @@ def mh_mcmc(iterations, init_theta, target, prop_sig2, startTime):
         q_theta = stats.multivariate_normal(theta, cov)
         theta_prop = q_theta.rvs()
         
+        print("Proposed point = ", theta_prop)
+
         # If the proposed point is less than or equal to 0, reject.
         if theta_prop[0] > 0 and theta_prop[1] > 0:
             # Compute acceptance probability
@@ -38,12 +40,12 @@ def mh_mcmc(iterations, init_theta, target, prop_sig2, startTime):
                         - target.log_posterior(theta)
                         - q_theta.logpdf(theta_prop)
                     )
+            print("log_r before = ", log_r)
             log_r = min(0, log_r)
+            print("log_r after = ", log_r)
 
             # Accept/reject point
             u = np.random.uniform()
-            if(i % 10 == 0): 
-                print(i, datetime.now() - startTime)
             if u < math.exp(log_r):
                 theta = theta_prop
                 accepted += 1
@@ -51,7 +53,15 @@ def mh_mcmc(iterations, init_theta, target, prop_sig2, startTime):
         # Save current point in separate vectors 
         t1[i+1] = theta[0]
         t2[i+1] = theta[1]
-    
+
+        if(i % 2 == 0): 
+            print(i, datetime.now() - startTime)
+            # Write data out to file 
+            h5file = h5py.File('iceberg_mcmc.h5', 'a')
+            WriteData(h5file, 'data_mcmc/theta1',   t1)
+            WriteData(h5file, 'data_mcmc/theta2',   t2)
+            WriteData(h5file, 'data_mcmc/acc_rate', accepted/(i+1))   
+ 
     return (t1, t2, accepted/iterations)
 
 def WriteData(hdf5file, name, data):
@@ -63,9 +73,9 @@ def WriteData(hdf5file, name, data):
 # Calls mcmc function and writes generated theta values out to data_mcmc.h5
 
 # Initialize variables
-iterations = 10000
+iterations = 10
 init_theta = [1, 0.1]
-prop_sig2 = 0.001
+prop_sig2 = 0.1
 
 # Create Posterior object
 a1 = 1 
@@ -77,7 +87,7 @@ hyperparams = [[a1, scale1], [a2, scale2]]
 state0 = [308.0, 55.9, 0.5, 0.5]
  
 filename = 'iceberg_data.h5'
-sig2 = 0.1 
+sig2 = 0.01 
  
 target = Posterior(hyperparams, state0, filename, sig2)
 

@@ -60,7 +60,7 @@ class Posterior:
 
 if __name__ == '__main__':
     filename = "iceberg_data.h5"
-    sig2 = 1
+    sig2 = 0.01
     
     a1 = 1
     scale1 = 1
@@ -74,10 +74,10 @@ if __name__ == '__main__':
     post = Posterior(hyperparameters, state0, filename, sig2)
     
     # Create linearly spaced theta values to evaluate posterior at
-    t1_size = 10
-    t2_size = 10
-    theta1 = np.linspace(0, 2, t1_size)
-    theta2 = np.linspace(0, 2, t2_size)
+    t1_size = 20
+    t2_size = 20
+    theta1 = np.linspace(0, 1.5, t1_size)
+    theta2 = np.linspace(0, 1, t2_size)
     
     startTime = datetime.now()
     print(startTime) 
