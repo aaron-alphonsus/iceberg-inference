@@ -3,7 +3,7 @@
 import h5py
 import numpy as np
 
-from Forward import * 
+from Forward import *
 from MakeFigure import *
 
 def WriteData(hdf5file, name, data):
@@ -53,7 +53,7 @@ ytrue = [y[1] for y in TrueData]
 fig = MakeFigure(425, 0.9)
 ax = plt.gca()
 ax.plot(xtrue, ytrue, color = '#000cff')
-ax.plot(x_data, y_data, 'o', markerfacecolor = '#00ffd8', 
+ax.plot(x_data, y_data, 'o', markerfacecolor = '#00ffd8',
     markeredgecolor = '#00ffd8', markersize = 4)
 ax.set_xlabel('Longitude', fontsize = 16, color = '#969696')
 ax.set_ylabel('Latitude', fontsize = 16, color = '#969696')

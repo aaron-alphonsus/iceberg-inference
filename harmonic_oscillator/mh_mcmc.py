@@ -10,7 +10,7 @@ from MakeFigure import *
 # Takes in number of iterations, starting theta point, target distribution and
 #     sigma value for the covariance
 # Returns arrays with theta1 and theta2 chains along with the acceptance rate
-def mh_mcmc(iterations, init_theta, target, sigma):
+def mh_mcmc(iterations, init_theta, target, sigma, T):
     # Define arrays to store the theta1 and theta2 chains. Store the initial
     #     theta values in the first spots of the arrays
     t1 = np.zeros(iterations+1)
@@ -22,11 +22,12 @@ def mh_mcmc(iterations, init_theta, target, sigma):
     cov = np.diag([sigma]*2) # For the distribution of the proposed point
     theta = init_theta
 
-    for i in range(iterations): 
+    for i in range(iterations):
         # Propose new point
+        print(i)
         q_theta = stats.multivariate_normal(theta, cov)
         theta_prop = q_theta.rvs()
-        
+
         # If the proposed point is less than or equal to 0, reject.
         if theta_prop[0] > 0 and theta_prop[1] > 0:
             # Compute acceptance probability
@@ -42,11 +43,11 @@ def mh_mcmc(iterations, init_theta, target, sigma):
             if u < math.exp(log_r):
                 theta = theta_prop
                 accepted += 1
-       
-        # Save current point in separate vectors 
+
+        # Save current point in separate vectors
         t1[i+1] = theta[0]
         t2[i+1] = theta[1]
-    
+
     return (t1, t2, accepted/iterations)
 
 def WriteData(hdf5file, name, data):
@@ -59,28 +60,28 @@ def WriteData(hdf5file, name, data):
 
 # Initialize variables
 iterations = 100000
-init_theta = [1, 0.25]
+init_theta = [3, 3]
 sigma = 0.01
 
 # Create Posterior object
-a1 = 2 
-scale1 = 1 
-a2 = 1 
-scale2 = 1 
-hyperparams = [[a1, scale1], [a2, scale2]] 
- 
-x0 = 1.0 
-u0 = 0.0 
-state0 = [x0, u0] 
- 
+a1 = 2
+scale1 = 1
+a2 = 1
+scale2 = 1
+hyperparams = [[a1, scale1], [a2, scale2]]
+
+x0 = 1.0
+u0 = 0.0
+state0 = [x0, u0]
+
 filename = 'data.h5'
-sig2 = 0.1 
-T = 10 
- 
+sig2 = 0.1
+T = 10
+
 target = Posterior(hyperparams, state0, filename, sig2, T)
 
 # Call mcmc function with initialized variables and posterior object
-theta1, theta2, acc_rate = mh_mcmc(iterations, init_theta, target, sigma)
+theta1, theta2, acc_rate = mh_mcmc(iterations, init_theta, target, sigma, T)
 
 # Write data out to file
 filename = 'data_mcmc.h5'

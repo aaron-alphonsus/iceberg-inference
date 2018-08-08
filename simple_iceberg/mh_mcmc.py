@@ -24,11 +24,11 @@ def mh_mcmc(iterations, init_theta, target, prop_sig2, startTime):
     cov = np.diag([prop_sig2]*2) # For the distribution of the proposed point
     theta = init_theta
 
-    for i in range(iterations): 
+    for i in range(iterations):
         # Propose new point
         q_theta = stats.multivariate_normal(theta, cov)
         theta_prop = q_theta.rvs()
-        
+
         # If the proposed point is less than or equal to 0, reject.
         if theta_prop[0] > 0 and theta_prop[1] > 0:
             # Compute acceptance probability
@@ -42,16 +42,16 @@ def mh_mcmc(iterations, init_theta, target, prop_sig2, startTime):
 
             # Accept/reject point
             u = np.random.uniform()
-            if(i % 1000 == 0): 
+            if(i % 1000 == 0):
                 print(i, datetime.now() - startTime)
             if u < math.exp(log_r):
                 theta = theta_prop
                 accepted += 1
-       
-        # Save current point in separate vectors 
+
+        # Save current point in separate vectors
         t1[i+1] = theta[0]
         t2[i+1] = theta[1]
-    
+
     return (t1, t2, accepted/iterations)
 
 def WriteData(hdf5file, name, data):
@@ -65,30 +65,30 @@ def WriteData(hdf5file, name, data):
 # Initialize variables
 iterations = 100000
 init_theta = [1.5, 1.5]
-prop_sig2 = 0.0001
+prop_sig2 = 0.1
 
 # Create Posterior object
-a1 = 2 
-scale1 = 1 
-a2 = 1 
-scale2 = 1 
-hyperparams = [[a1, scale1], [a2, scale2]] 
- 
-x0 = 0.0 
+a1 = 2
+scale1 = 1
+a2 = 1
+scale2 = 1
+hyperparams = [[a1, scale1], [a2, scale2]]
+
+x0 = 0.0
 y0 = -1.0
 u0 = 0.0
-v0 = 0.0 
-state0 = [x0, y0, u0, v0] 
- 
+v0 = 0.0
+state0 = [x0, y0, u0, v0]
+
 filename = 'iceberg_data.h5'
-sig2 = 1 
- 
+sig2 = 0.1
+
 target = Posterior(hyperparams, state0, filename, sig2)
 
 # Call mcmc function with initialized variables and posterior object
 startTime = datetime.now()
 print(startTime)
-theta1, theta2, acc_rate = mh_mcmc(iterations, init_theta, target, prop_sig2, 
+theta1, theta2, acc_rate = mh_mcmc(iterations, init_theta, target, prop_sig2,
     startTime)
 print(datetime.now(), datetime.now() - startTime)
 

@@ -40,19 +40,20 @@ m = 1.0
 theta = [sqrt(k/m), c/m]
 
 # hyperparameters
-sig2 = 0.01 # data noise
+sig2 = 0.1 # data noise
 
 tf = 10.0 # final time
 T = 10 # number of observations
 
 # Observation times
 tobs = np.linspace(t0, tf, T)
+#tobs = sorted(np.random.uniform(t0, tf, T))
 WriteData(hdf5file, 'data/time', tobs)
 
 # run the forward model
 xobs = ForwardModel(tobs, theta, state0)
 
-# generate the noise 
+# generate the noise
 cov = np.diag([sig2]*T)
 noise = np.random.multivariate_normal([0.0]*T, cov)
 
@@ -63,12 +64,12 @@ WriteData(hdf5file, 'data/xobs', data)
 # for plotting purposes, compute the truth
 time = np.linspace(t0, tf, 1000)
 xtrue = ForwardModel(time, theta, state0)
-
 fig = MakeFigure(425, 0.9)
 ax = plt.gca()
-ax.plot(time, xtrue, color='#969696')
-ax.plot(tobs, data, 'o', markerfacecolor='#969696', markeredgecolor='#969696',
-	markersize=4)
-ax.set_xlabel('Time $t$', fontsize=16, color='#969696')
-ax.set_ylabel('Position $x$', fontsize=16, color='#969696')
-plt.savefig('fig_data.pdf', format='pdf', bbox_inches='tight')
+ax.plot(time, xtrue, color='#111111')
+ax.plot(tobs, data, 'o', markerfacecolor='#000cff', markeredgecolor='#000cff',
+	markersize=8)
+#ax.set_title('Harmonic Oscillator True & Noisy Solution', fontsize=16, color='#969696')
+ax.set_xlabel('Time t', fontsize=30, color='#969696')
+ax.set_ylabel('Position x', fontsize=30, color='#969696')
+plt.show()

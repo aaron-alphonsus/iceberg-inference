@@ -14,7 +14,7 @@ from scipy.integrate import ode
 
 # t - time
 # x - unknown; solve for this!
-# theta - [\omega, \gamma] 
+# theta - [\omega, \gamma]
 def rhs(t, state, theta):
     x = state[0]
     u = state[1]
@@ -37,19 +37,19 @@ def ForwardModel(time, theta, state0):
     solver = ode(rhs, jacobian)
 
     # set the numerical options (e.g., method and tolerances)
-    solver.set_integrator('zvode', method='bdf', with_jacobian=True, 
+    solver.set_integrator('zvode', method='bdf', with_jacobian=True,
             atol=1.0e-8, rtol=1.0e-8) # play with tolerances?
 
     solver.set_initial_value(state0, time[0])
     solver.set_f_params(theta)
     solver.set_jac_params(theta)
-    
+
     xvec = [state0[0]]
 
     for t in time[1:]:
-        assert(solver.successful())
+    #    assert(solver.successful())
         solver.integrate(t)
-        
+
         xvec = xvec+[solver.y[0].real] # only need the real part
 
     return xvec

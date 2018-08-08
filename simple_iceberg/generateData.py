@@ -3,7 +3,7 @@
 import h5py
 import numpy as np
 
-from IcebergForwardModel_Sketch import ForwardModel 
+from IcebergForwardModel_Sketch import ForwardModel
 from MakeFigure import *
 
 def WriteData(hdf5file, name, data):
@@ -15,7 +15,7 @@ filename = 'iceberg_data.h5'
 hdf5file = h5py.File(filename, 'a')
 
 t0 = 0.0
-sig2 = 1
+sig2 = 0.1
 
 theta = [1.5, 1.5]
 state0 = [0,-1,0,0]
@@ -24,8 +24,8 @@ state0 = [0,-1,0,0]
 # state0 = [x0, y0, u0, v0]
 
 tf = 100
-# tf = 36 
-T = 25
+# tf = 36
+T = 200
 
 tobs = np.linspace(t0, tf, T)
 WriteData(hdf5file, 'data/time', tobs)
@@ -51,9 +51,9 @@ ytrue = [y[1] for y in TrueData]
 
 fig = MakeFigure(425, 0.9)
 ax = plt.gca()
-ax.plot(xtrue, ytrue, color = '#000cff')
-ax.plot(x_data, y_data, 'o', markerfacecolor = '#00ffd8', 
-    markeredgecolor = '#00ffd8', markersize = 4)
-ax.set_xlabel('Longitude', fontsize = 16, color = '#969696')
-ax.set_ylabel('Latitude', fontsize = 16, color = '#969696')
+ax.plot(xtrue, ytrue, color = '#111111')
+ax.plot(x_data, y_data, 'o', markerfacecolor = '#000cff',
+    markeredgecolor = '#000cff', markersize = 8)
+ax.set_xlabel('Longitude', fontsize = 30, color = '#969696')
+ax.set_ylabel('Latitude', fontsize = 30, color = '#969696')
 plt.show()
